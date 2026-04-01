@@ -1,13 +1,13 @@
 // spec: specs/saucedemo-checkout-test-plan.md
 // seed: tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 const SAUCEDEMO_URL = 'https://www.saucedemo.com';
 const STANDARD_USER = 'standard_user';
 const PASSWORD = 'secret_sauce';
 
-async function completeFullCheckoutFlow(page) {
+async function completeFullCheckoutFlow(page: Page) {
   // Navigate and login
   await page.goto(SAUCEDEMO_URL);
   await page.locator('[data-test="username"]').fill(STANDARD_USER);
