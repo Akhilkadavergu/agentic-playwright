@@ -25,6 +25,12 @@ pipeline {
                 bat 'npx playwright test'
             }
         }
+
+        stage('Generate Allure Report') {
+            steps {
+                bat 'npx allure generate allure-results --clean'
+            }
+        }
     }
 
     post {
@@ -36,6 +42,14 @@ pipeline {
                 reportDir: 'playwright-report',
                 reportFiles: 'index.html',
                 reportName: 'Playwright Report'
+            ])
+            publishHTML(target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'allure-report',
+                reportFiles: 'index.html',
+                reportName: 'Allure Report'
             ])
         }
     }
