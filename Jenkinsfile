@@ -1,11 +1,26 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'TEST_MATCH', defaultValue: '**/*.spec.ts', description: 'Glob pattern for test files/class/namespace to execute')
-        string(name: 'WORKERS', defaultValue: '10', description: 'Number of Playwright workers')
-        string(name: 'BROWSERS', defaultValue: 'chromium', description: 'Comma-separated browsers (chromium,firefox,webkit,all)')
-    }
+    properties([
+        parameters([
+            choice(name: 'SUITE_SCOPE', choices: ['full', 'partial'], description: 'Run the full suite or selected partial suite'),
+            choice(name: 'PARTIAL_SUITE', choices: [
+                'tests/saucedemo-checkout/accessibility.spec.ts',
+                'tests/saucedemo-checkout/cart-review.spec.ts',
+                'tests/saucedemo-checkout/cart-totals.spec.ts',
+                'tests/saucedemo-checkout/checkout-validation.spec.ts',
+                'tests/saucedemo-checkout/error-handling.spec.ts',
+                'tests/saucedemo-checkout/navigation-flow.spec.ts',
+                'tests/saucedemo-checkout/order-completion.spec.ts',
+                'tests/saucedemo-checkout/order-overview.spec.ts',
+                'tests/saucedemo-checkout/ui-elements.spec.ts'
+            ], description: 'Test file to execute (used when SUITE_SCOPE=partial)'),
+            booleanParam(name: 'CHROME', defaultValue: true, description: 'Run in chromium'),
+            booleanParam(name: 'FIREFOX', defaultValue: false, description: 'Run in firefox'),
+            booleanParam(name: 'WEBKIT', defaultValue: false, description: 'Run in webkit'),
+            string(name: 'WORKERS', defaultValue: '10', description: 'Number of Playwright workers')
+        ])
+    ])
 
     stages {
         stage('Checkout') {
@@ -29,13 +44,18 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    def browsers = params.BROWSERS.split(',').collect { it.trim().toLowerCase() }.findAll { it }
-                    def browserArgs = ''
-                    if (!browsers.contains('all')) {
-                        browserArgs = browsers.collect { "--project=${it}" }.join(' ')
+                    def selectedBrowsers = []
+                    if (params.CHROME) selectedBrowsers << 'chromium'
+                    if (params.FIREFOX) selectedBrowsers << 'firefox'
+                    if (params.WEBKIT) selectedBrowsers << 'webkit'
+                    if (!selectedBrowsers) {
+                        selectedBrowsers = ['chromium']
                     }
+
+                    def browserArgs = selectedBrowsers.collect { "--project=${it}" }.join(' ')
                     def workerCount = params.WORKERS ?: '10'
-                    def testPattern = params.TEST_MATCH ?: '**/*.spec.ts'
+
+                    def testPattern = (params.SUITE_SCOPE == 'partial') ? params.PARTIAL_SUITE : '**/*.spec.ts'
 
                     bat "npx playwright test ${testPattern} --workers=${workerCount} ${browserArgs}"
                 }
