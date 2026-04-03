@@ -83,7 +83,7 @@ Report URL: ${env.BUILD_URL}artifact/playwright-report/index.html
 Notes:
 - Report is attached as playwright-report.zip
 """,
-                to: 'akhilkadavergu@outlook.com',  // Replace with your email
+                to: 'akhilkumarkadavergu@gmail.com',  // Replace with your email
                 attachmentsPattern: 'playwright-report.zip'
             )
             publishHTML(target: [
