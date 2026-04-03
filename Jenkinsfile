@@ -53,9 +53,9 @@ pipeline {
                     def browserArgs = selectedBrowsers.collect { "--project=${it}" }.join(' ')
                     def workerCount = params.WORKERS ?: '10'
 
-                    def testPattern = (params.SUITE_SCOPE == 'partial') ? params.PARTIAL_SUITE : '**/*.spec.ts'
+                    def testPattern = (params.SUITE_SCOPE == 'partial') ? params.PARTIAL_SUITE : 'tests'
 
-                    bat "npx playwright test ${testPattern} --workers=${workerCount} ${browserArgs}"
+                    bat "npx playwright test \"${testPattern}\" --workers=${workerCount} ${browserArgs}"
                 }
             }
         }
