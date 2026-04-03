@@ -66,14 +66,23 @@ pipeline {
             bat 'dir playwright-report'
             bat 'powershell Compress-Archive -Path playwright-report -DestinationPath playwright-report.zip -Force'
             emailext(
-                subject: "Playwright Test Report - ${currentBuild.currentResult}",
-                body: """Test execution completed.
-                
+                subject: "[Playwright] ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                body: """Playwright Execution Report
+===========================
+
+Job: ${env.JOB_NAME}
 Build: ${env.BUILD_NUMBER}
 Status: ${currentBuild.currentResult}
-Job: ${env.JOB_NAME}
+Branch: ${env.GIT_BRANCH ?: 'n/a'}
+Trigger: ${env.BUILD_CAUSE ?: 'manual/unknown'}
+Duration: ${currentBuild.durationString}
 
-Report attached.""",
+Console URL: ${env.BUILD_URL}console
+Report URL: ${env.BUILD_URL}artifact/playwright-report/index.html
+
+Notes:
+- Report is attached as playwright-report.zip
+""",
                 to: 'akhilkadavergu@outlook.com',  // Replace with your email
                 attachmentsPattern: 'playwright-report.zip'
             )
