@@ -32,7 +32,7 @@ export default defineConfig({
     trace: 'on-first-retry',
 
     /* Take screenshots for all tests */
-    screenshot: 'on',
+    screenshot: 'only-on-failure',
   },
 
   /* Configure projects for major browsers */
