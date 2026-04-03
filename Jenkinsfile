@@ -1,26 +1,24 @@
 pipeline {
     agent any
 
-    properties([
-        parameters([
-            choice(name: 'SUITE_SCOPE', choices: ['full', 'partial'], description: 'Run the full suite or selected partial suite'),
-            choice(name: 'PARTIAL_SUITE', choices: [
-                'tests/saucedemo-checkout/accessibility.spec.ts',
-                'tests/saucedemo-checkout/cart-review.spec.ts',
-                'tests/saucedemo-checkout/cart-totals.spec.ts',
-                'tests/saucedemo-checkout/checkout-validation.spec.ts',
-                'tests/saucedemo-checkout/error-handling.spec.ts',
-                'tests/saucedemo-checkout/navigation-flow.spec.ts',
-                'tests/saucedemo-checkout/order-completion.spec.ts',
-                'tests/saucedemo-checkout/order-overview.spec.ts',
-                'tests/saucedemo-checkout/ui-elements.spec.ts'
-            ], description: 'Test file to execute (used when SUITE_SCOPE=partial)'),
-            booleanParam(name: 'CHROME', defaultValue: true, description: 'Run in chromium'),
-            booleanParam(name: 'FIREFOX', defaultValue: false, description: 'Run in firefox'),
-            booleanParam(name: 'WEBKIT', defaultValue: false, description: 'Run in webkit'),
-            string(name: 'WORKERS', defaultValue: '10', description: 'Number of Playwright workers')
-        ])
-    ])
+    parameters {
+        choice(name: 'SUITE_SCOPE', choices: ['full', 'partial'], description: 'Run the full suite or selected partial suite')
+        choice(name: 'PARTIAL_SUITE', choices: [
+            'tests/saucedemo-checkout/accessibility.spec.ts',
+            'tests/saucedemo-checkout/cart-review.spec.ts',
+            'tests/saucedemo-checkout/cart-totals.spec.ts',
+            'tests/saucedemo-checkout/checkout-validation.spec.ts',
+            'tests/saucedemo-checkout/error-handling.spec.ts',
+            'tests/saucedemo-checkout/navigation-flow.spec.ts',
+            'tests/saucedemo-checkout/order-completion.spec.ts',
+            'tests/saucedemo-checkout/order-overview.spec.ts',
+            'tests/saucedemo-checkout/ui-elements.spec.ts'
+        ], description: 'Test file to execute (used when SUITE_SCOPE=partial)')
+        booleanParam(name: 'CHROME', defaultValue: true, description: 'Run in chromium')
+        booleanParam(name: 'FIREFOX', defaultValue: false, description: 'Run in firefox')
+        booleanParam(name: 'WEBKIT', defaultValue: false, description: 'Run in webkit')
+        string(name: 'WORKERS', defaultValue: '10', description: 'Number of Playwright workers')
+    }
 
     stages {
         stage('Checkout') {
