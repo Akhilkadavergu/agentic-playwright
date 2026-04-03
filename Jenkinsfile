@@ -63,7 +63,6 @@ pipeline {
 
     post {
         always {
-            allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             publishHTML(target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
