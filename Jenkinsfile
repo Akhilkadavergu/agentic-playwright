@@ -74,8 +74,8 @@ Status: ${currentBuild.currentResult}
 Job: ${env.JOB_NAME}
 
 Report attached.""",
-                to: 'your-email@example.com',  // Replace with your email
-                attach: 'playwright-report.zip'
+                to: 'akhilkadavergu@outlook.com',  // Replace with your email
+                attachmentsPattern: 'playwright-report.zip'
             )
             publishHTML(target: [
                 allowMissing: false,
