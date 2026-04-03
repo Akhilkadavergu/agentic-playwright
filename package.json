@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "send-report": "powershell Compress-Archive -Path playwright-report -DestinationPath playwright-report.zip -Force && echo 'Report zipped. Send playwright-report.zip via email manually or configure automated email.'"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

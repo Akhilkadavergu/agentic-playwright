@@ -65,7 +65,26 @@ pipeline {
         always {
             bat 'dir playwright-report'
             bat 'powershell Compress-Archive -Path playwright-report -DestinationPath playwright-report.zip -Force'
-            archiveArtifacts artifacts: 'playwright-report.zip', allowEmptyArchive: true
+            emailext(
+                subject: "Playwright Test Report - ${currentBuild.currentResult}",
+                body: """Test execution completed.
+                
+Build: ${env.BUILD_NUMBER}
+Status: ${currentBuild.currentResult}
+Job: ${env.JOB_NAME}
+
+Report attached.""",
+                to: 'your-email@example.com',  // Replace with your email
+                attach: 'playwright-report.zip'
+            )
+            publishHTML(target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'playwright-report',
+                reportFiles: 'index.html',
+                reportName: 'Playwright Report'
+            ])
         }
     }
 }
