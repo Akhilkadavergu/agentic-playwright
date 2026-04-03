@@ -64,14 +64,8 @@ pipeline {
     post {
         always {
             bat 'dir playwright-report'
-            publishHTML(target: [
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'playwright-report',
-                reportFiles: 'index.html',
-                reportName: 'Playwright Report'
-            ])
+            bat 'powershell Compress-Archive -Path playwright-report -DestinationPath playwright-report.zip -Force'
+            archiveArtifacts artifacts: 'playwright-report.zip', allowEmptyArchive: true
         }
     }
 }
