@@ -59,16 +59,11 @@ pipeline {
                 }
             }
         }
-
-        stage('Generate Allure Report') {
-            steps {
-                bat 'allure generate allure-results --clean -o allure-report'
-            }
-        }
     }
 
     post {
         always {
+            allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             publishHTML(target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
@@ -76,14 +71,6 @@ pipeline {
                 reportDir: 'playwright-report',
                 reportFiles: 'index.html',
                 reportName: 'Playwright Report'
-            ])
-            publishHTML(target: [
-                allowMissing: false,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'allure-report',
-                reportFiles: 'index.html',
-                reportName: 'Allure Report'
             ])
         }
     }
