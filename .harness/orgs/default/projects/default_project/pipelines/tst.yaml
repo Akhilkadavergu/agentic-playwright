@@ -1,0 +1,72 @@
+pipeline:
+  name: tst
+  identifier: tst
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: "run "
+        identifier: run
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: ShellScript_1
+                  identifier: ShellScript_1
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          # 1. Install Dependencies
+                          echo "Installing dependencies..."
+                          npm install
+
+                          # 2. Install Playwright Browsers
+                          echo "Installing Playwright browsers..."
+                          npx playwright install
+
+                          # 3. Parse Browser Selections
+                          $selectedBrowsers = @()
+                          if ("<+pipeline.inputs.CHROME>" -eq "true") { $selectedBrowsers += "--project=chromium" }
+                          if ("<+pipeline.inputs.FIREFOX>" -eq "true") { $selectedBrowsers += "--project=firefox" }
+                          if ("<+pipeline.inputs.WEBKIT>" -eq "true") { $selectedBrowsers += "--project=webkit" }
+
+                          # Fallback to chromium if none selected
+                          if ($selectedBrowsers.Count -eq 0) { $selectedBrowsers += "--project=chromium" }
+                          $browserArgs = $selectedBrowsers -join " "
+
+                          # 4. Resolve Test Scope / File Pattern
+                          $testPattern = ""
+                          if ("<+pipeline.inputs.SUITE_SCOPE>" -eq "partial") {
+                              # Replaces 'tests/' out of the path to match your Jenkinsfile logic
+                              $rawPath = "<+pipeline.inputs.PARTIAL_SUITE>"
+                              $testPattern = $rawPath -replace "^tests/", ""
+                          }
+
+                          # 5. Build Workers Count
+                          $workerCount = "<+pipeline.inputs.WORKERS>"
+                          if ([string]::IsNullOrEmpty($workerCount)) { $workerCount = "10" }
+
+                          # 6. Execute Playwright Tests
+                          echo "Executing Playwright tests..."
+                          if (![string]::IsNullOrEmpty($testPattern)) {
+                              npx playwright test "$testPattern" --workers=$workerCount $browserArgs
+                          } else {
+                              npx playwright test --workers=$workerCount $browserArgs
+                          }
+
+                          # 7. Post-Execution Artifact Archiving
+                          echo "Archiving test report..."
+                          dir playwright-report
+                          Compress-Archive -Path playwright-report -DestinationPath playwright-report.zip -Force
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+        tags: {}
