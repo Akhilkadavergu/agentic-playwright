@@ -1,0 +1,137 @@
+pipeline:
+  name: test
+  identifier: test
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: test
+        identifier: test
+        description: ""
+        type: Dynamic
+        spec:
+          source: |-
+            name: Playwright Test Pipeline
+
+            on:
+              workflow_dispatch:
+                inputs:
+                  SUITE_SCOPE:
+                    description: Run the full suite or selected partial suite
+                    required: true
+                    type: choice
+                    options:
+                      - full
+                      - partial
+                    default: full
+
+                  PARTIAL_SUITE:
+                    description: Test file to execute (used when SUITE_SCOPE=partial)
+                    required: false
+                    type: choice
+                    options:
+                      - tests/saucedemo-checkout/accessibility.spec.ts
+                      - tests/saucedemo-checkout/cart-review.spec.ts
+                      - tests/saucedemo-checkout/cart-totals.spec.ts
+                      - tests/saucedemo-checkout/checkout-validation.spec.ts
+                      - tests/saucedemo-checkout/error-handling.spec.ts
+                      - tests/saucedemo-checkout/navigation-flow.spec.ts
+                      - tests/saucedemo-checkout/order-completion.spec.ts
+                      - tests/saucedemo-checkout/order-overview.spec.ts
+                      - tests/saucedemo-checkout/ui-elements.spec.ts
+                    default: tests/saucedemo-checkout/accessibility.spec.ts
+
+                  CHROME:
+                    description: Run in chromium
+                    required: false
+                    type: boolean
+                    default: true
+
+                  FIREFOX:
+                    description: Run in firefox
+                    required: false
+                    type: boolean
+                    default: false
+
+                  WEBKIT:
+                    description: Run in webkit
+                    required: false
+                    type: boolean
+                    default: false
+
+                  WORKERS:
+                    description: Number of Playwright workers
+                    required: false
+                    type: string
+                    default: "10"
+
+            jobs:
+              playwright-tests:
+                runs-on: ubuntu-latest
+                timeout-minutes: 60
+
+                steps:
+                  - name: Checkout repository
+                    uses: actions/checkout@v4
+
+                  - name: Setup Node.js
+                    uses: actions/setup-node@v4
+                    with:
+                      node-version: 20
+                      cache: npm
+
+                  - name: Install dependencies
+                    run: npm install
+
+                  - name: Install Playwright browsers
+                    run: npx playwright install --with-deps
+
+                  - name: Run Playwright tests
+                    shell: bash
+                    env:
+                      SUITE_SCOPE: ${{ inputs.SUITE_SCOPE }}
+                      PARTIAL_SUITE: ${{ inputs.PARTIAL_SUITE }}
+                      CHROME: ${{ inputs.CHROME }}
+                      FIREFOX: ${{ inputs.FIREFOX }}
+                      WEBKIT: ${{ inputs.WEBKIT }}
+                      WORKERS: ${{ inputs.WORKERS }}
+                    run: |
+                      BROWSERS=()
+                      if [ "${CHROME}" = "true" ]; then
+                        BROWSERS+=("--project=chromium")
+                      fi
+                      if [ "${FIREFOX}" = "true" ]; then
+                        BROWSERS+=("--project=firefox")
+                      fi
+                      if [ "${WEBKIT}" = "true" ]; then
+                        BROWSERS+=("--project=webkit")
+                      fi
+
+                      if [ ${#BROWSERS[@]} -eq 0 ]; then
+                        BROWSERS+=("--project=chromium")
+                      fi
+
+                      if [ "${SUITE_SCOPE}" = "partial" ]; then
+                        TEST_PATH="${PARTIAL_SUITE#tests/}"
+                        npx playwright test "${TEST_PATH}" --workers="${WORKERS:-10}" "${BROWSERS[@]}"
+                      else
+                        npx playwright test --workers="${WORKERS:-10}" "${BROWSERS[@]}"
+                      fi
+
+                  - name: Create Playwright report zip
+                    if: always()
+                    shell: bash
+                    run: |
+                      if [ -d playwright-report ]; then
+                        zip -r playwright-report.zip playwright-report
+                      fi
+
+                  - name: Upload Playwright report
+                    if: always()
+                    uses: actions/upload-artifact@v4
+                    with:
+                      name: playwright-report
+                      path: playwright-report.zip
+                      if-no-files-found: warn
+        tags: {}
